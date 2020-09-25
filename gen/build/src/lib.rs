@@ -4,6 +4,11 @@
 //! C++ code generator, set up any additional compiler flags depending on
 //! the use case, and make the C++ compiler invocation.
 //!
+//! CXX create features, such as support of a different C++ standard, are
+//! automatically set if using cxx_build. This ensures that your code gets
+//! compiled with the same feature flags as the CXX bridge library code in
+//! cxx.h|cc. See the CXX crate for available features.
+//!
 //! <br>
 //!
 //! # Example
@@ -16,7 +21,6 @@
 //! fn main() {
 //!     cxx_build::bridge("src/main.rs")
 //!         .file("src/demo.cc")
-//!         .flag_if_supported("-std=c++11")
 //!         .compile("cxxbridge-demo");
 //!
 //!     println!("cargo:rerun-if-changed=src/main.rs");
@@ -87,7 +91,6 @@ pub fn bridge(rust_source_file: impl AsRef<Path>) -> Build {
 /// let source_files = vec!["src/main.rs", "src/path/to/other.rs"];
 /// cxx_build::bridges(source_files)
 ///     .file("src/demo.cc")
-///     .flag_if_supported("-std=c++11")
 ///     .compile("cxxbridge-demo");
 /// ```
 #[must_use]
@@ -129,6 +132,8 @@ fn build(rust_source_files: &mut dyn Iterator<Item = impl AsRef<Path>>) -> Resul
     build.cpp(true);
     build.cpp_link_stdlib(None); // linked via link-cplusplus crate
     build.include(&include_dir);
+    // Set feature parameters, such as C++ std, for simpler usage
+    build.flag_if_supported(cxxbridge_flags::STD);
     write_header(prj);
     let crate_dir = symlink_crate(prj, &mut build);
 
